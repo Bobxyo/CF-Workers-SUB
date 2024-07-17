@@ -37,7 +37,6 @@ tun:
     - "any:53"
   auto-route: true
   auto-detect-interface: true
-
 dns:
   enable: false
   listen: :1053
@@ -65,167 +64,130 @@ dns:
     "geosite:cn,private":
       - https://doh.pub/dns-query
       - https://dns.alidns.com/dns-query
-
-experimental:
-  ignore-resolve-fail: true
-unified-delay: true
-
-# proxy-providers参数锚点 方便多订阅源复用
 pvd-info: &pvd-info # 更新订阅周期 3天
   interval: 259200
-  # 节点状态检查
   health-check:
     enable: true
     url: http://www.gstatic.com/generate_204
     interval: 600
 
-# clash 链接无须转换 节点订阅转换 https://sub.xeton.dev/sub?target=clash&url=订阅链接多个用|分割&list=true&udp=false
-# 可选自建或其他订阅转换工具 推荐选择输出为 NodeList 也可处理节点过滤
-proxy-providers:
-  Subscribe:
-    # 代理提供商类型 http|file
-    type: http
-    # 引用参数锚点
-    <<: *pvd-info
-    # 排除关键字使用exclude参数(UrlCode编码)例如要排除"海外|到期"在链接后追加 &exclude=%E6%B5%B7%E5%A4%96%7C%E5%88%B0%E6%9C%9F
-    url: "https://dy.byxiao.top/v2ray&list=true&udp=true&exclude=%E6%B5%B7%E5%A4%96%7C%E5%88%B0%E6%9C%9F"
-    # 订阅内容保存路径
-    path: ./Providers/Proxies/Subscribe.yaml
-    # filter: 'HK|TW|US' # 过滤节点 Golang regex不支持复杂表达式 建议用订阅转换工具过滤
-  # ======== 引用当前已有clash配置文件示例 ========
-  # MyConfig:
-  #   type: file
-  #   path: MyConfig.yaml # 当前已有配置文件path
-  #   health-check:
-  #     enable: true
-  #     interval: 36000
-  #     url: http://www.gstatic.com/generate_204
-  #   filter: 'HK|JP|VN|SG'
-
-  # 定义节点过滤参数锚点
-  filter-info: &filter-info
-    type: file
-    path: ./Providers/Proxies/Subscribe.yaml
-
-  # 代理组中不支持 filter 在这处理
-  🔞 自建节点: { <<: *filter-info, filter: "sing-box|Oracle|Raksmart|hy2" }  
-  💦 BPB: { <<: *filter-info, filter: "BPB|💦" }
-  🇭🇰 香港节点: { <<: *filter-info, filter: "🇭🇰|港|HK|hk|Hong Kong|HongKong|hongkong|HKG" }
-  🇹🇼 台湾节点: { <<: *filter-info, filter: "🇹🇼|台湾|台北|TW|🇹🇼|Taiwan" }
-  🇯🇵 日本节点: { <<: *filter-info, filter: "🇯🇵|日本|川日|东京|大阪|泉日|埼玉|沪日|深日|[^-]日|JP|Japan" }
-  🇸🇬 新加坡节点: { <<: *filter-info, filter: "新加坡|🇸🇬|SG|Singapore" }
-  🇺🇲 美国节点: { <<: *filter-info, filter: "美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|US|United States|ATL|BUF|DFW|EWR|IAD|LAX|MCI|MIA|ORD|PHX|PDX|SEA|SJC" }
-  🇰🇷 韩国节点: { <<: *filter-info, filter: "韩国|韩|KR|🇰🇷|Korea" }
-
-# 使用proxy-providers中的节点 定义锚点
-all-proxy: &all-proxy
-  type: select
-  use:
-    - Subscribe # 引用订阅文件
-    # - MyConfig # 引用已有配置文件
-
-# 其他代理 自建等写在这里
-proxies:
-  - { name: "ss1", type: ss, server: server, port: 443, cipher: chacha20-ietf-poly1305, password: "password", udp: true}
-  # - { name: "ss2", type: ss, server: server, port: 443, cipher: chacha20-ietf-poly1305, password: "password", udp: true}
-# 定义自建代理锚点
-local-proxy: &local-proxy
-  - ss1
-  # - ss2
+all-groups: &all-groups
+  proxies:
+    [
+      🚀 手动切换,
+      ♻️ 自动选择,
+      🇭🇰 香港节点,
+      🇸🇬 新加坡节点,
+      🇺🇲 美国节点,
+      🇯🇵 日本节点,
+      🇰🇷 韩国节点,
+      💦 BPB,
+      🔞 自建节点,
+      DIRECT,
+    ]
 
 # 定义自动测速节点
-auto: &auto-select
+auto: &auto
   type: url-test
   lazy: true
   url: http://www.gstatic.com/generate_204
-  # 节点检测 间隔10分钟
   interval: 600
-  use:
-    - Subscribe
-    # - MyConfig # 引用已有配置文件
 
-# 定义分流参数锚点
-group-proxy: &group-proxy
+all-proxy: &all-proxy
   type: select
-  proxies: [🚀 手动切换, ♻️ 自动选择,🇭🇰 香港节点, 🇸🇬 新加坡节点, 🇺🇲 美国节点, 🇯🇵 日本节点, 🇰🇷 韩国节点, 💦 BPB, 🔞 自建节点, DIRECT]
+  <<: *all-groups
 
-# 定义代理分组 与锚点合并
+proxy-providers:
+  Subscribe:
+    type: http
+    <<: *pvd-info
+    url: "<URL>"
+    path: ./Providers/Proxies/Subscribe.yaml
+
+proxies:
+  - { name: "ss1", type: ss, server: server, port: 443, cipher: chacha20-ietf-poly1305, password: "password", udp: true}
+
 proxy-groups:
   - name: 🚀 手动切换
-    <<: *all-proxy
-    proxies:
-      - ♻️ 自动选择
-      # - 🔧 自定节点 # 按需是否使用自定义节点
-  - name: ♻️ 自动选择
-    <<: *auto-select
-    proxies:
-      # 添加自定义节点
-      # - ss1
-      # - ss2
-  - name: 🌍 国外媒体
     type: select
-    <<: *group-proxy
-    proxies: [🚀 手动切换, 🇸🇬 新加坡节点, 🇺🇲 美国节点, 🇯🇵 日本节点, 🇰🇷 韩国节点, 💦 BPB, 🔞 自建节点, DIRECT]
-  - name: 🍎 苹果服务
-    <<: *group-proxy
-  - name: 📺 哔哩哔哩
-    type: select
-    proxies: [DIRECT, 🇭🇰 香港节点, 🇹🇼 台湾节点]
-  - name: 🤖 OpenAi
-    type: select
-    proxies: [🚀 手动切换, 🇺🇲 美国节点, 🇯🇵 日本节点, 🔞 自建节点]
-  # - name: 🆎 AdBlock # 广告过滤分组 已用其他过滤工具不建议Clash中再启用
-  #   type: select
-  #   proxies: [REJECT, DIRECT]
+    use:
+      - Subscribe
 
-  # 代理转发链 relay 示例 新版本推荐使用更快速的 tunnels 模式
-  # proxies 中不应该包含 relay 节点 不支持 UDP
-  # 流量示意 clash <-> vmess <-> ss1 <-> 互联网 (这样是为了用自建节点落地解决机场跳 IP 问题)
-  # - name: 🔁 relay
-  #   type: relay
-  #   proxies: # !!!注意proxies中不能有relay节点
-  #     - vmess
-  #     - ss1
   - name: 🔧 自定节点
     type: select
     proxies: *local-proxy
 
+  - name: ♻️ 自动选择
+    <<: *auto
+    proxies:
+      [
+        🚀 手动切换,
+        🇭🇰 香港节点,
+        🇸🇬 新加坡节点,
+        🇺🇲 美国节点,
+        🇯🇵 日本节点,
+        🇰🇷 韩国节点,
+        💦 BPB,
+        🔞 自建节点,
+        DIRECT,
+      ]
+
+  - name: 🌍 国外媒体
+    <<: *all-proxy
+
+  - name: 🍎 苹果服务
+    <<: *all-proxy
+
+  - name: 📺 哔哩哔哩
+    type: select
+    proxies: [DIRECT, 🇭🇰 香港节点, 🇹🇼 台湾节点]
+
+  - name: 🤖 OpenAi
+    type: select
+    proxies: [🚀 手动切换, 🇺🇲 美国节点, 🇯🇵 日本节点, 🔞 自建节点]
+
+  - name: 🔞 自建节点
+    type: select
+    include-all-providers: true
+    filter: "sing-box|Oracle|Raksmart|hy2"
+
+  - name: 💦 BPB
+    type: select
+    include-all-providers: true
+    filter: "BPB|💦"
+
   - name: 🐟 漏网之鱼
-    <<: *group-proxy
+    <<: *all-proxy
 
-  # Meta 核心节点按地区分组示例 (Clash Premium 不支持此种过滤)
-  # - name: 🇭🇰 香港节点
-  #   <<: *all-proxy
-  #   filter: '港|HK|(?i)Hong'
-  # - name: 🇨🇳 台湾节点
-  #   <<: *all-proxy
-  #   filter: '台|湾|TW|(?i)Taiwan'
-
-  # 节点按地区分组 当前手动选择节点 可参考auto-select锚点改为自动选择
   - name: 🇭🇰 香港节点
-    type: auto-select
-    use:
-      - 🇭🇰 香港节点
+    <<: *auto
+    include-all-providers: true
+    filter: "🇭🇰|港|HK|hk|Hong Kong|HongKong|hongkong|HKG"
+
   - name: 🇹🇼 台湾节点
-    type: auto-select
-    use:
-      - 🇹🇼 台湾节点
+    <<: *auto
+    include-all-providers: true
+    filter: "🇹🇼|台湾|台北|TW|🇹🇼|Taiwan"
+
   - name: 🇯🇵 日本节点
-    type: auto-select
-    use:
-      - 🇯🇵 日本节点
+    <<: *auto
+    include-all-providers: true
+    filter: "🇯🇵|日本|川日|东京|大阪|泉日|埼玉|沪日|深日|[^-]日|JP|Japan"
+
   - name: 🇸🇬 新加坡节点
-    type: auto-select
-    use:
-      - 🇸🇬 新加坡节点
-  - name: 🇺🇲 美国节点
-    type: auto-select
-    use:
-      - 🇺🇲 美国节点
+    <<: *auto
+    include-all-providers: true
+    filter: "新加坡|🇸🇬|SG|Singapore"
+
   - name: 🇰🇷 韩国节点
-    type: auto-select
-    use:
-      - 🇰🇷 韩国节点
+    <<: *auto
+    include-all-providers: true
+    filter: "韩国|韩|KR|🇰🇷|Korea"
+
+  - name: 🇺🇲 美国节点
+    <<: *auto
+    include-all-providers: true
+    filter: "美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|US|United States|ATL|BUF|DFW|EWR|IAD|"
 
 # 定义规则集参数锚点 interval 3 天更新一次足够 Meta 核心不需要 type 和 path 参数
 rule-info: &rule-info

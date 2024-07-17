@@ -104,9 +104,6 @@ proxy-providers:
     url: "<URL>"
     path: ./Providers/Proxies/Subscribe.yaml
 
-proxies:
-  - { name: "ss1", type: ss, server: server, port: 443, cipher: chacha20-ietf-poly1305, password: "password", udp: true}
-
 proxy-groups:
   - name: 🚀 手动切换
     type: select

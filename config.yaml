@@ -113,10 +113,6 @@ proxy-groups:
     use:
       - Subscribe
 
-  - name: 🔧 自定节点
-    type: select
-    proxies: *local-proxy
-
   - name: ♻️ 自动选择
     <<: *auto
     proxies:
